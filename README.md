@@ -11,8 +11,14 @@ A minimal Python project for simulating and comparing delta-sigma Digital-to-Ana
 
 ## Installation
 
+Install dependencies:
 ```bash
 pip install -r requirements.txt
+```
+
+Or install as a package:
+```bash
+pip install -e .
 ```
 
 ## Usage
