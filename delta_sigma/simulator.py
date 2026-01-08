@@ -59,13 +59,12 @@ class DeltaSigmaDAC:
             frequencies: Frequency array
             psd: Power spectral density in dB
         """
-        # Use Welch's method for better spectral estimation
-        window = np.hanning(min(fft_size, len(signal)))
-        n_segments = len(signal) // fft_size
-        
-        if n_segments == 0:
-            fft_data = np.fft.fft(signal * np.hanning(len(signal)), fft_size)
+        # Apply window and compute FFT
+        if len(signal) < fft_size:
+            window = np.hanning(len(signal))
+            fft_data = np.fft.fft(signal * window, fft_size)
         else:
+            window = np.hanning(fft_size)
             fft_data = np.fft.fft(signal[:fft_size] * window, fft_size)
         
         psd = 20 * np.log10(np.abs(fft_data) + 1e-10)
