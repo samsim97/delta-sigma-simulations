@@ -82,14 +82,53 @@ def compare_orders(orders_data, max_freq=None):
       psd_plot = psd
   
     color = colors[i % len(colors)]
-    ax.plot(freq_plot, psd_plot, color=color, linewidth=1.5, 
-            label=f'Order {order}', alpha=0.8)
+    ax.semilogx(freq_plot, psd_plot, color=color, linewidth=1.5, label=f'Order {order}', alpha=0.8)
   
   ax.set_xlabel('Frequency (Hz)')
   ax.set_ylabel('Power Spectral Density (dB)')
   ax.set_title('Delta-Sigma DAC Order Comparison')
   ax.legend()
   ax.grid(True, alpha=0.3)
+  
+  plt.tight_layout()
+  return fig
+
+
+def plot_psd_stem(frequencies, psd, title="Power Spectral Density (Stem)", max_freq=None):
+  """
+  Plot power spectral density using stem plot with logarithmic frequency axis.
+  
+  Args:
+    frequencies: Frequency array
+    psd: Power spectral density in dB
+    title: Plot title
+    max_freq: Maximum frequency to display (Hz)
+  """
+  fig, ax = plt.subplots(figsize=(12, 6))
+  
+  if max_freq:
+    mask = frequencies <= max_freq
+    frequencies = frequencies[mask]
+    psd = psd[mask]
+  
+  # Exclude zero frequency if present (for semilog)
+  nonzero_idx = frequencies > 0
+  frequencies = frequencies[nonzero_idx]
+  psd = psd[nonzero_idx]
+  
+  # Stem plot with semilog x-axis
+  ax.set_xscale('log')
+  markerline, stemlines, baseline = ax.stem(frequencies, psd, basefmt=' ')
+  markerline.set_markerfacecolor('b')
+  markerline.set_markeredgecolor('b')
+  markerline.set_markersize(4)
+  stemlines.set_color('b')
+  stemlines.set_linewidth(0.8)
+  
+  ax.set_xlabel('Frequency (Hz)')
+  ax.set_ylabel('Power Spectral Density (dB)')
+  ax.set_title(title)
+  ax.grid(True, alpha=0.3, which='both')
   
   plt.tight_layout()
   return fig
