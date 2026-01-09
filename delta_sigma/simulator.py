@@ -38,34 +38,26 @@ class DeltaSigmaDAC:
     output = np.zeros(len(input_signal))
     self.integrators = np.zeros(self.order)
     
+    prev_y = 0.0
     for i, sample in enumerate(input_signal):
-      # Negative feedback: subtract previous output from input
-      # In VHDL: error <= input - feedback
-      feedback = output[i-1] if i > 0 else 0
-      error = sample - feedback
-      
-      # First integrator (accumulator)
-      # In VHDL: accumulator <= accumulator + error (with saturation)
-      self.integrators[0] += error
-      # Simulate hardware saturation (like fixed-point arithmetic)
-      self.integrators[0] = np.clip(self.integrators[0], 
-                                     self.accumulator_min, 
-                                     self.accumulator_max)
+      # CIFB-style loop: each integrator integrates previous stage output
+      # with negative feedback from the previous 1-bit output (prev_y).
+      # Stage 0 integrates input error; higher stages integrate their
+      # predecessor's output minus feedback.
+      e0 = sample - prev_y
+      self.integrators[0] += e0
+      self.integrators[0] = np.clip(self.integrators[0], self.accumulator_min, self.accumulator_max)
+
       integrator_out = self.integrators[0]
-      
-      # Higher order integrators (cascaded chain)
       for j in range(1, self.order):
-        # In VHDL: accumulator(j) <= accumulator(j) + accumulator(j-1)
-        self.integrators[j] += integrator_out
-        # Saturation on each stage (hardware behavior)
-        self.integrators[j] = np.clip(self.integrators[j],
-                                       self.accumulator_min,
-                                       self.accumulator_max)
+        self.integrators[j] += (integrator_out - prev_y)
+        self.integrators[j] = np.clip(self.integrators[j], self.accumulator_min, self.accumulator_max)
         integrator_out = self.integrators[j]
-      
-      # 1-bit quantizer (comparator)
-      # In VHDL: output <= '1' when accumulator >= 0 else '0'
-      output[i] = 1.0 if integrator_out >= 0 else -1.0
+
+      # Quantizer
+      y = 1.0 if integrator_out >= 0 else -1.0
+      output[i] = y
+      prev_y = y
         
     return output
   

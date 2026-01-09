@@ -3,19 +3,22 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from delta_sigma import DeltaSigmaDAC, compare_orders, generate_pcm_sine_with_trace, snr
+from delta_sigma import reconstruct_analog_from_dsm_bitstream
+from delta_sigma.plotter import plot_signals
 
 
 def main():
   sampling_rate: int = 20_000_000
   digital_sample_rate: int = 20_000_000
   duration: float = 0.001
-  sin_signal_freq: int = 1_000_000
-  # sin_signal_freq = 100_000
+  # sin_signal_freq: int = 1_000_000
+  sin_signal_freq = 10_000
   bits: int = 8  # PCM word length
   amplitudes = (0.5,)
     
   use_log_scale = True
   display_points = False
+  show_sdm_dac_temporal_response = True
   
   if sampling_rate % digital_sample_rate != 0:
     raise ValueError("sampling_rate must be an integer multiple of digital_sample_rate")
@@ -51,15 +54,27 @@ def main():
   
   orders: list[int] = [1, 2, 3]
   results: dict[int, tuple[np.ndarray[np.float64], np.ndarray[np.float64]]] = {}
+  outputs: dict[int, np.ndarray[np.float64]] = {}
   
   print("Simulating Delta-Sigma DAC at different orders...")
   for order in orders:
     print(f"  Order {order}...")
     dac = DeltaSigmaDAC(order=order, sampling_rate=sampling_rate)
-    output = dac.modulate(input_signal)
+    outputs[order] = dac.modulate(input_signal)
     # Use larger FFT size for better low-frequency resolution
-    frequencies, psd = dac.compute_psd(output, fft_size=65536)
+    frequencies, psd = dac.compute_psd(outputs[order], fft_size=65536)
     results[order] = (frequencies, psd)
+    
+  if show_sdm_dac_temporal_response:        
+    print("Generating output plots for each order...")
+    for order in orders:
+      analog_output = reconstruct_analog_from_dsm_bitstream(outputs[order])
+      fig = plot_signals(modulator_time, 
+                                 input_signal, 
+                                 analog_output,
+                                 title=f"Delta-Sigma DAC (Order {order})")
+      plt.savefig(f'simulations_out/output_order_{order}.png', dpi=100, bbox_inches='tight')
+      plt.show()
   
   print("Computing SNR for each order...")
   for order in orders:
@@ -73,7 +88,7 @@ def main():
   plt.savefig('simulations_out/order_comparison.png', dpi=100, bbox_inches='tight')
   plt.show()
   
-  print("Done! Check 'simulations_out/' for results.")
+  print("Plots saved in 'simulations_out/'.")
 
 
 if __name__ == "__main__":
