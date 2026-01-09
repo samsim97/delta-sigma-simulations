@@ -29,7 +29,12 @@ def generate_pcm_sine(amplitude, analog_frequency, duration, bits, digital_sampl
   return pcm_upsampled
 
 
-def generate_pcm_sine_with_trace(amplitude, analog_frequency, duration, bits, digital_sample_rate, oversampling_ratio):
+def generate_pcm_sine_with_trace(amplitude, 
+                                 analog_frequency, 
+                                 duration, 
+                                 bits, 
+                                 digital_sample_rate, 
+                                 oversampling_ratio) -> tuple[np.ndarray[np.float64], np.ndarray[np.float64], np.ndarray[np.float64]]:
   """
   Create a quantized PCM sine wave and upsample it, returning both analog and digital versions.
 
@@ -38,10 +43,10 @@ def generate_pcm_sine_with_trace(amplitude, analog_frequency, duration, bits, di
     analog_sine: Continuous-time sine sampled at digital_sample_rate (pre-quantization).
     pcm_upsampled: Quantized PCM samples repeated to the modulator rate.
   """
-  t_pcm = np.arange(0, duration, 1 / digital_sample_rate)
-  analog_sine = amplitude * np.sin(2 * np.pi * analog_frequency * t_pcm)
-  max_code = 2 ** (bits - 1) - 1
-  pcm_codes = np.round(np.clip(analog_sine * max_code, -max_code, max_code)).astype(int)
-  normalized_pcm = pcm_codes / max_code
-  pcm_upsampled = np.repeat(normalized_pcm, oversampling_ratio)
+  t_pcm: np.ndarray[np.float64] = np.arange(0, duration, 1 / digital_sample_rate)
+  analog_sine: np.ndarray[np.float64] = amplitude * np.sin(2 * np.pi * analog_frequency * t_pcm)
+  max_code: int = 2 ** (bits - 1) - 1
+  pcm_codes: np.ndarray[np.int64] = np.round(np.clip(analog_sine * max_code, -max_code, max_code)).astype(int)
+  normalized_pcm: np.ndarray[np.float64] = pcm_codes / max_code
+  pcm_upsampled: np.ndarray[np.float64] = np.repeat(normalized_pcm, oversampling_ratio)
   return t_pcm, analog_sine, pcm_upsampled

@@ -69,7 +69,7 @@ class DeltaSigmaDAC:
         
     return output
   
-  def compute_psd(self, signal, fft_size=8192):
+  def compute_psd(self, signal, fft_size=8192) -> tuple[np.ndarray[np.float64], np.ndarray[np.float64]]:
     """
     Compute Power Spectral Density of a signal.
     
@@ -83,15 +83,15 @@ class DeltaSigmaDAC:
     """
     # Apply window and compute FFT
     if len(signal) < fft_size:
-      window = np.hanning(len(signal))
-      fft_data = np.fft.fft(signal * window, fft_size)
+      window: np.ndarray[np.float64] = np.hanning(len(signal))
+      fft_data: np.ndarray[np.complex128] = np.fft.fft(signal * window, fft_size)
     else:
-      window = np.hanning(fft_size)
-      fft_data = np.fft.fft(signal[:fft_size] * window, fft_size)
+      window: np.ndarray[np.float64] = np.hanning(fft_size)
+      fft_data: np.ndarray[np.complex128] = np.fft.fft(signal[:fft_size] * window, fft_size)
     
-    psd = 20 * np.log10(np.abs(fft_data) + 1e-10)
-    frequencies = np.fft.fftfreq(fft_size, 1 / self.sampling_rate)
+    psd: np.ndarray[np.float64] = 20 * np.log10(np.abs(fft_data) + 1e-10)
+    frequencies: np.ndarray[np.float64] = np.fft.fftfreq(fft_size, 1 / self.sampling_rate)
     
     # Return only positive frequencies
-    positive_idx = frequencies >= 0
+    positive_idx: np.ndarray[np.bool_] = frequencies >= 0
     return frequencies[positive_idx], psd[positive_idx]

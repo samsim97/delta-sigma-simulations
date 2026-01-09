@@ -4,7 +4,7 @@
       "name": "Python Debugger: Current File",
       "type": "debugpy",
       "request": "launch",
-      "program": "simulation.py",
+      "program": "compare_orders_simulation.py",
       "console": "integratedTerminal"
     }
   ]
