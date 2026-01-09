@@ -60,7 +60,7 @@ def plot_psd(frequencies, psd, title="Power Spectral Density", max_freq=None):
   return fig
 
 
-def compare_orders(orders_data, max_freq=None):
+def compare_orders(orders_data, use_log_scale=True, max_freq=None):
   """
   Compare PSDs of different delta-sigma orders.
   
@@ -82,7 +82,10 @@ def compare_orders(orders_data, max_freq=None):
       psd_plot = psd
   
     color = colors[i % len(colors)]
-    ax.semilogx(freq_plot, psd_plot, color=color, linewidth=1.5, label=f'Order {order}', alpha=0.8)
+    if use_log_scale:
+      ax.semilogx(freq_plot, psd_plot, color=color, linewidth=1.5, label=f'Order {order}', alpha=0.8)
+    else:
+      ax.plot(freq_plot, psd_plot, color=color, linewidth=1.5, label=f'Order {order}', alpha=0.8)
   
   ax.set_xlabel('Frequency (Hz)')
   ax.set_ylabel('Power Spectral Density (dB)')

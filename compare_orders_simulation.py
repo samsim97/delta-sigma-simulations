@@ -2,16 +2,19 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from delta_sigma import DeltaSigmaDAC, plot_signals, compare_orders, plot_psd_stem, generate_pcm_sine_with_trace
+from delta_sigma import DeltaSigmaDAC, compare_orders, generate_pcm_sine_with_trace
 
 
 def main():
   sampling_rate = 20_000_000
   digital_sample_rate = 20_000_000
   duration = 0.001
-  sin_signal_freq = 100_000
+  sin_signal_freq = 1_000_000
+  # sin_signal_freq = 100_000
   bits = 8  # PCM word length
-  amplitudes = (0.5,)  
+  amplitudes = (0.5,)
+    
+  use_log_scale = True
   
   if sampling_rate % digital_sample_rate != 0:
     raise ValueError("sampling_rate must be an integer multiple of digital_sample_rate")
@@ -30,18 +33,19 @@ def main():
   
   # Plot digitalized sine input over a few cycles
   print("Plotting digitalized sine input...")
-  cycles_to_plot = 3
-  analog_samples_to_plot = min(len(t_pcm), int(cycles_to_plot * digital_sample_rate / sin_signal_freq))
-  digital_samples_to_plot = analog_samples_to_plot * oversampling_ratio
+  # cycles_to_plot = 3
+  # analog_samples_to_plot = min(len(t_pcm), int(cycles_to_plot * digital_sample_rate / sin_signal_freq))
+  # digital_samples_to_plot = analog_samples_to_plot * oversampling_ratio
   
   fig_input, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 6))
-  ax1.plot(t_pcm[:analog_samples_to_plot], analog_sine[:analog_samples_to_plot], 'b-', linewidth=1.2)
+  # ax1.plot(t_pcm[:analog_samples_to_plot], analog_sine[:analog_samples_to_plot], 'b-', linewidth=1.2)
+  ax1.plot(t_pcm, analog_sine, 'b-', linewidth=1.2)
   ax1.set_title('Analog Sine (pre-quantization)')
   ax1.set_ylabel('Amplitude')
   ax1.grid(True, alpha=0.3)
   
-  ax2.step(modulator_time[:digital_samples_to_plot], input_signal[:digital_samples_to_plot], 
-           where='post', color='g', linewidth=1.0)
+  # ax2.step(modulator_time[:digital_samples_to_plot], input_signal[:digital_samples_to_plot], where='post', color='g', linewidth=1.0)
+  ax2.step(modulator_time, input_signal, where='post', color='g', linewidth=1.0)
   ax2.set_title(f'PCM Digitalized Input ({bits}-bit, upsampled to modulator rate)')
   ax2.set_xlabel('Time (s)')
   ax2.set_ylabel('Amplitude')
@@ -65,7 +69,7 @@ def main():
   
   # Compare all orders in frequency domain
   print("Generating comparison plot...")
-  fig = compare_orders(results, max_freq=sampling_rate / 4)
+  fig = compare_orders(results, use_log_scale=use_log_scale)#, max_freq=sampling_rate / 4)
   plt.savefig('simulations_out/order_comparison.png', dpi=100, bbox_inches='tight')
   plt.show()
   
