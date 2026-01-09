@@ -8,9 +8,9 @@ from delta_sigma.plotter import plot_signals
 
 
 def main():
-  sampling_rate: int = 20_000_000
-  digital_sample_rate: int = 20_000_000
-  duration: float = 0.001
+  modulator_sample_rate: int = 400_000_000  # Delta-sigma modulator clock rate (e.g., 20 MHz), the output signal has this frequency
+  pcm_sample_rate: int = 200_000        # Input PCM digital signal sample rate
+  duration: float = 0.01
   # sin_signal_freq: int = 1_000_000
   sin_signal_freq = 10_000
   bits: int = 8  # PCM word length
@@ -20,9 +20,9 @@ def main():
   display_points = False
   show_sdm_dac_temporal_response = True
   
-  if sampling_rate % digital_sample_rate != 0:
-    raise ValueError("sampling_rate must be an integer multiple of digital_sample_rate")
-  oversampling_ratio: int = sampling_rate // digital_sample_rate
+  if modulator_sample_rate % pcm_sample_rate != 0:
+    raise ValueError("modulator_sample_rate must be an integer multiple of pcm_sample_rate")
+  oversampling_ratio: int = modulator_sample_rate // pcm_sample_rate
   
   # Generate PCM signal with trace for visualization
   t_pcm, analog_sine, input_signal = generate_pcm_sine_with_trace(
@@ -30,10 +30,10 @@ def main():
     analog_frequency=sin_signal_freq,
     duration=duration,
     bits=bits,
-    digital_sample_rate=digital_sample_rate,
+    digital_sample_rate=pcm_sample_rate,
     oversampling_ratio=oversampling_ratio,
   )
-  modulator_time = np.arange(len(input_signal)) / sampling_rate
+  modulator_time = np.arange(len(input_signal)) / modulator_sample_rate
   
   print("Plotting digitalized sine input...")
   
@@ -59,7 +59,7 @@ def main():
   print("Simulating Delta-Sigma DAC at different orders...")
   for order in orders:
     print(f"  Order {order}...")
-    dac = DeltaSigmaDAC(order=order, sampling_rate=sampling_rate)
+    dac = DeltaSigmaDAC(order=order, sampling_rate=modulator_sample_rate)
     outputs[order] = dac.modulate(input_signal)
     # Use larger FFT size for better low-frequency resolution
     frequencies, psd = dac.compute_psd(outputs[order], fft_size=65536)
@@ -67,7 +67,7 @@ def main():
     
   if show_sdm_dac_temporal_response:        
     print("Generating output plots for each order...")
-    for order in orders:
+    for order in orders:     
       analog_output = reconstruct_analog_from_dsm_bitstream(outputs[order])
       fig = plot_signals(modulator_time, 
                                  input_signal, 

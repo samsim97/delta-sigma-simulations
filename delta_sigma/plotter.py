@@ -89,6 +89,9 @@ def compare_orders(orders_data, use_log_scale=True, display_points=False, max_fr
 
     if display_points:
       ax.scatter(freq_plot, psd_plot, color=color, s=10, alpha=0.6)
+      
+  
+  ax.set_xlim(left=10**3, right=max_freq if max_freq else 10**8)
   
   ax.set_xlabel('Frequency (Hz)')
   ax.set_ylabel('Power Spectral Density (dB)')

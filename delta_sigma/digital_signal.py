@@ -45,6 +45,7 @@ def generate_pcm_sine_with_trace(amplitude,
     pcm_upsampled: Quantized PCM samples repeated to the modulator rate.
   """
   t_pcm: np.ndarray[np.float64] = np.arange(0, duration, 1 / digital_sample_rate)
+  print(f"Number of points: ", len(t_pcm))
   analog_sine: np.ndarray[np.float64] = amplitude * np.sin(2 * np.pi * analog_frequency * t_pcm)
   max_code: int = 2 ** (bits - 1) - 1
   pcm_codes: np.ndarray[np.int64] = np.round(np.clip(analog_sine * max_code, -max_code, max_code)).astype(int)

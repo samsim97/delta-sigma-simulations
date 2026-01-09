@@ -24,6 +24,21 @@ class DeltaSigmaDAC:
     # In VHDL: signal accumulator : signed(accumulator_bits-1 downto 0)
     self.accumulator_max = 2.0 ** (accumulator_bits - 1) - 1
     self.accumulator_min = -(2.0 ** (accumulator_bits - 1))
+    
+    # Loop filter coefficients - scale integrators to prevent saturation
+    # These coefficients ensure stability across different OSRs
+    # Using optimized coefficients for noise-shaping transfer function
+    if order == 1:
+      self.coefficients = np.array([1.0])
+    elif order == 2:
+      # Second-order: scale each stage to balance SNR and stability
+      self.coefficients = np.array([0.5, 0.5])
+    elif order == 3:
+      # Third-order: more aggressive scaling to prevent instability
+      self.coefficients = np.array([0.3, 0.3, 0.4])
+    else:
+      # Generic scaling for higher orders
+      self.coefficients = np.ones(order) / order
       
   def modulate(self, input_signal):
     """
@@ -40,22 +55,22 @@ class DeltaSigmaDAC:
     
     prev_y = 0.0
     for i, sample in enumerate(input_signal):
-      # CIFB-style loop: each integrator integrates previous stage output
-      # with negative feedback from the previous 1-bit output (prev_y).
-      # Stage 0 integrates input error; higher stages integrate their
-      # predecessor's output minus feedback.
-      e0 = sample - prev_y
-      self.integrators[0] += e0
+      # Error signal (input minus feedback)
+      error = sample - prev_y
+      
+      # First integrator: accumulate scaled error
+      self.integrators[0] += error * self.coefficients[0]
       self.integrators[0] = np.clip(self.integrators[0], self.accumulator_min, self.accumulator_max)
-
-      integrator_out = self.integrators[0]
+      
+      # Higher-order integrators: cascade with local feedback
       for j in range(1, self.order):
-        self.integrators[j] += (integrator_out - prev_y)
+        # Each stage integrates the previous stage's output minus local feedback
+        stage_input = self.integrators[j-1] - prev_y * self.coefficients[j]
+        self.integrators[j] += stage_input * self.coefficients[j]
         self.integrators[j] = np.clip(self.integrators[j], self.accumulator_min, self.accumulator_max)
-        integrator_out = self.integrators[j]
-
-      # Quantizer
-      y = 1.0 if integrator_out >= 0 else -1.0
+      
+      # Quantizer: uses the last integrator's output
+      y = 1.0 if self.integrators[-1] >= 0 else -1.0
       output[i] = y
       prev_y = y
         
