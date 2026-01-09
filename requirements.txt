@@ -1,3 +1,6 @@
-numpy>=1.20.0
+numpy==1.20.3
+# numpy>=1.20.0
 matplotlib>=3.3.0
-scipy>=1.15.3
+scipy==1.7.1
+# scipy>=1.15.3
+deltasigma>=0.2.2
