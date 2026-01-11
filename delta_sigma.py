@@ -1,6 +1,8 @@
 from deltasigma import *
 from matplotlib import figure
 from matplotlib.pyplot import *
+from matplotlib.table import Table
+from itertools import zip_longest as izip_longest
 import numpy as np
 
 
@@ -131,15 +133,19 @@ adc = {
 
 
 
-t = Table()
+ax = gca()
 ilabels = ['#1', '#2', '#3', '#4', '#5', '#6']
-t.append(['Coefficients', 'DAC feedback', 'Resonator feedback', 
-          'Feed-in', 'Interstage'])
-t.append(['', 'a(n)', 'g(n)', ' b(n)', ' c(n)'])
-[t.append(x) for x in izip_longest(ilabels, 
-                                   adc['coefficients']['a'].tolist(), 
-                                   adc['coefficients']['g'].tolist(), 
-                                   adc['coefficients']['b'].tolist(), 
-                                   adc['coefficients']['c'].tolist(), fillvalue="")]
-t
+rows = []
+rows.append(['Coefficients', 'DAC feedback', 'Resonator feedback', 'Feed-in', 'Interstage'])
+rows.append(['', 'a(n)', 'g(n)', 'b(n)', 'c(n)'])
+for x in izip_longest(ilabels,
+                      adc['coefficients']['a'].tolist(),
+                      adc['coefficients']['g'].tolist(),
+                      adc['coefficients']['b'].tolist(),
+                      adc['coefficients']['c'].tolist(), fillvalue=""):
+    rows.append(list(x))
+ax.axis('off')
+table = ax.table(cellText=rows, loc='center')
+table.auto_set_font_size(False)
+table.scale(1, 1.5)
 
