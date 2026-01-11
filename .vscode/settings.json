@@ -1,0 +1,4 @@
+{
+  "python.analysis.extraPaths": ["${workspaceFolder}/python-deltasigma"],
+  "python.autoComplete.extraPaths": ["${workspaceFolder}/python-deltasigma"]
+}

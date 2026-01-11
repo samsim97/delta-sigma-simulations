@@ -1,4 +1,7 @@
+sys.path.insert(0, os.path.abspath('python-deltasigma'))
+
 from deltasigma import *
+
 from matplotlib import figure
 from matplotlib.pyplot import *
 from matplotlib.table import Table

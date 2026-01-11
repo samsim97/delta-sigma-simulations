@@ -1,0 +1,3 @@
+[submodule "python-deltasigma"]
+	path = python-deltasigma
+	url = https://github.com/samsim97/python-deltasigma.git

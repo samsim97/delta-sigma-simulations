@@ -27,8 +27,7 @@ import matplotlib.pyplot as plt
 
 # Ensure the project root is on sys.path so the local `deltasigma` package
 # (the one in this repo) is importable by the example script.
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+sys.path.insert(0, os.path.abspath('python-deltasigma'))
 from deltasigma import synthesizeNTF, realizeNTF, stuffABCD, scaleABCD, simulateDSM
 
 
